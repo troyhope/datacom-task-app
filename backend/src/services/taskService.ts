@@ -17,7 +17,10 @@ export class TaskService {
     });
 
     const response = await docClient.send(command);
-    return (response.Items || []) as Task[];
+    const tasks = (response.Items || []) as Task[];
+
+    // Sort tasks by id (which is a timestamp) in ascending order
+    return tasks.sort((a, b) => parseInt(a.id) - parseInt(b.id));
   }
 
   async getTaskById(id: string): Promise<Task | null> {

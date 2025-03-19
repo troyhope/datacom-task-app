@@ -5,6 +5,11 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@shared/*": ["../shared/*"]
+    },
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -18,15 +23,8 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-
-    /* Paths */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@shared/*": ["../shared/*"]
-    }
+    "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "../shared"],
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
