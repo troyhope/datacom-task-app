@@ -6,11 +6,17 @@ const TASKS_API = {
   create: "/tasks",
   update: (id: string) => `/tasks/${id}`,
   delete: (id: string) => `/tasks/${id}`,
+  getById: (id: string) => `/tasks/${id}`,
 } as const;
 
 export const taskApi = {
   list: async (): Promise<Task[]> => {
     const response = await api.get<Task[]>(TASKS_API.list);
+    return response.data;
+  },
+
+  getTaskById: async (id: string): Promise<Task> => {
+    const response = await api.get<Task>(TASKS_API.getById(id));
     return response.data;
   },
 

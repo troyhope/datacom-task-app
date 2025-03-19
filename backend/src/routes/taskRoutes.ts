@@ -1,12 +1,20 @@
 import { Router } from "express";
-import { taskController } from "../controllers/taskController";
+import {
+  getAllTasks,
+  getTaskById,
+  createTask,
+  updateTask,
+  deleteTask,
+} from "../controllers/taskController";
+import { validateTask } from "../middleware/validateTask";
 
 const router = Router();
 
-router.get("/", taskController.getAllTasks);
-router.get("/:id", taskController.getTaskById);
-router.post("/", taskController.createTask);
-router.put("/:id", taskController.updateTask);
-router.delete("/:id", taskController.deleteTask);
+router.get("/", getAllTasks);
+// getTaskById not utilised, but for example, we could use it to show the specific task details in a modal
+router.get("/:id", getTaskById);
+router.post("/", validateTask, createTask);
+router.put("/:id", validateTask, updateTask);
+router.delete("/:id", deleteTask);
 
 export default router;
