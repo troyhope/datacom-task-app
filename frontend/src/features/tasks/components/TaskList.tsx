@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { TaskItem } from "./TaskItem";
 import { TaskForm } from "./TaskForm";
 import { useTasks } from "../hooks/useTasks";
@@ -46,61 +46,77 @@ export function TaskList() {
 
   const paginatedTasks = filteredTasks.slice(startIndex, endIndex);
 
+  // Only fetch tasks on initial mount
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Reset to first page when filter changes
   useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter, setCurrentPage]);
 
-  const handleCreateTask = async (data: CreateTaskDTO) => {
-    setIsSubmitting(true);
-    try {
-      await createTask(data);
-      setIsCreating(false);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleUpdateTask = async (id: string, status: Task["status"]) => {
-    try {
-      await updateTask(id, { status });
-      if (editingTask?.id === id) {
-        setEditingTask((prev) => (prev ? { ...prev, status } : null));
+  // Memoize these handlers to prevent recreating them on every render
+  const handleCreateTask = useCallback(
+    async (data: CreateTaskDTO) => {
+      setIsSubmitting(true);
+      try {
+        await createTask(data);
+        setIsCreating(false);
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (error) {
-      console.error("Error updating task status:", error);
-    }
-  };
+    },
+    [createTask]
+  );
 
-  const handleEditTask = async (data: CreateTaskDTO) => {
-    if (!editingTask) return;
-    setIsSubmitting(true);
-    try {
-      await updateTask(editingTask.id, data);
-      setEditingTask(null);
-    } catch (error) {
-      console.error("Error updating task:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const handleUpdateTask = useCallback(
+    async (id: string, status: Task["status"]) => {
+      try {
+        await updateTask(id, { status });
+        if (editingTask?.id === id) {
+          setEditingTask((prev) => (prev ? { ...prev, status } : null));
+        }
+      } catch (error) {
+        console.error("Error updating task status:", error);
+      }
+    },
+    [updateTask, editingTask]
+  );
 
-  const handleDeleteTask = async (id: string) => {
-    try {
-      await deleteTask(id);
-      if (editingTask?.id === id) {
+  const handleEditTask = useCallback(
+    async (data: CreateTaskDTO) => {
+      if (!editingTask) return;
+      setIsSubmitting(true);
+      try {
+        await updateTask(editingTask.id, data);
         setEditingTask(null);
+      } catch (error) {
+        console.error("Error updating task:", error);
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (error) {
-      console.error("Error deleting task:", error);
-    }
-  };
+    },
+    [updateTask, editingTask]
+  );
 
-  if (loading) {
+  const handleDeleteTask = useCallback(
+    async (id: string) => {
+      try {
+        await deleteTask(id);
+        if (editingTask?.id === id) {
+          setEditingTask(null);
+        }
+      } catch (error) {
+        console.error("Error deleting task:", error);
+      }
+    },
+    [deleteTask, editingTask]
+  );
+
+  // Only show the loading spinner on initial load, not on updates
+  if (loading && tasks.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>

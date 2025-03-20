@@ -25,7 +25,7 @@ export function useTasks() {
     async (input: CreateTaskDTO) => {
       try {
         const newTask = await taskApi.create(input);
-        await fetchTasks(); // Refresh the list to ensure consistency
+        setTasks((currentTasks) => [...currentTasks, newTask]);
         showToast("Task created successfully", "success");
         return newTask;
       } catch (error) {
@@ -34,21 +34,22 @@ export function useTasks() {
         throw error;
       }
     },
-    [fetchTasks, showToast]
+    [showToast]
   );
 
   const updateTask = useCallback(
     async (id: string, input: UpdateTaskDTO) => {
       try {
         const updatedTask = await taskApi.update(id, input);
-        await fetchTasks(); // Refresh the list to ensure consistency
+        setTasks((currentTasks) =>
+          currentTasks.map((task) => (task.id === id ? updatedTask : task))
+        );
 
-        // Only show toast for status updates, not for edit form updates
         if ("status" in input) {
           showToast(
             input.status === "COMPLETED"
               ? "Task marked as complete"
-              : "Task marked as incomplete",
+              : "Task status updated",
             "success"
           );
         } else {
@@ -62,14 +63,16 @@ export function useTasks() {
         throw error;
       }
     },
-    [fetchTasks, showToast]
+    [showToast]
   );
 
   const deleteTask = useCallback(
     async (id: string) => {
       try {
         await taskApi.delete(id);
-        await fetchTasks(); // Refresh the list to ensure consistency
+        setTasks((currentTasks) =>
+          currentTasks.filter((task) => task.id !== id)
+        );
         showToast("Task deleted successfully", "success");
         return true;
       } catch (error) {
@@ -78,7 +81,7 @@ export function useTasks() {
         throw error;
       }
     },
-    [fetchTasks, showToast]
+    [showToast]
   );
 
   return {
