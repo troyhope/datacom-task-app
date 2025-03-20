@@ -1,81 +1,72 @@
-import {
-  DynamoDBDocumentClient,
-  GetCommand,
-  PutCommand,
-  ScanCommand,
-  DeleteCommand,
-} from "@aws-sdk/lib-dynamodb";
-import { Task, CreateTaskDTO, UpdateTaskDTO } from "@shared/types/task";
-import { dynamoClient, TABLE_NAME } from "../config/dynamodb";
-
-const docClient = DynamoDBDocumentClient.from(dynamoClient);
+import { Task, CreateTaskDTO } from "@shared/types/task";
+import { DynamoService } from "./dynamoService";
 
 export class TaskService {
+  private dynamoService: DynamoService;
+
+  constructor() {
+    this.dynamoService = new DynamoService();
+  }
+
   async getAllTasks(): Promise<Task[]> {
-    const command = new ScanCommand({
-      TableName: TABLE_NAME,
-    });
-
-    const response = await docClient.send(command);
-    const tasks = (response.Items || []) as Task[];
-
-    // Sort tasks by id (which is a timestamp) in ascending order
-    return tasks.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+    try {
+      return await this.dynamoService.getAllTasks();
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      throw new Error("Failed to fetch tasks");
+    }
   }
 
   async getTaskById(id: string): Promise<Task | null> {
-    const command = new GetCommand({
-      TableName: TABLE_NAME,
-      Key: { id },
-    });
-
-    const response = await docClient.send(command);
-    return (response.Item as Task) || null;
+    try {
+      const task = await this.dynamoService.getTaskById(id);
+      if (!task) {
+        throw new Error("Task not found");
+      }
+      return task;
+    } catch (error) {
+      console.error("Error fetching task:", error);
+      throw new Error("Failed to fetch task");
+    }
   }
 
   async createTask(taskData: CreateTaskDTO): Promise<Task> {
-    const newTask: Task = {
-      ...taskData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    const command = new PutCommand({
-      TableName: TABLE_NAME,
-      Item: newTask,
-    });
-
-    await docClient.send(command);
-    return newTask;
+    try {
+      const task = {
+        ...taskData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      return await this.dynamoService.createTask(task);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      throw new Error("Failed to create task");
+    }
   }
 
-  async updateTask(id: string, taskData: UpdateTaskDTO): Promise<Task | null> {
-    const existingTask = await this.getTaskById(id);
-    if (!existingTask) return null;
-
-    const updatedTask: Task = {
-      ...existingTask,
-      ...taskData,
-      updatedAt: new Date().toISOString(),
-    };
-
-    const command = new PutCommand({
-      TableName: TABLE_NAME,
-      Item: updatedTask,
-    });
-
-    await docClient.send(command);
-    return updatedTask;
+  async updateTask(id: string, updates: Partial<Task>): Promise<Task | null> {
+    try {
+      const task = await this.dynamoService.updateTask(id, updates);
+      if (!task) {
+        throw new Error("Task not found");
+      }
+      return task;
+    } catch (error) {
+      console.error("Error updating task:", error);
+      throw new Error("Failed to update task");
+    }
   }
 
   async deleteTask(id: string): Promise<boolean> {
-    const command = new DeleteCommand({
-      TableName: TABLE_NAME,
-      Key: { id },
-    });
-
-    await docClient.send(command);
-    return true;
+    try {
+      const deleted = await this.dynamoService.deleteTask(id);
+      if (!deleted) {
+        throw new Error("Task not found");
+      }
+      return true;
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      throw new Error("Failed to delete task");
+    }
   }
 }

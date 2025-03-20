@@ -1,0 +1,21 @@
+service: task-app-frontend
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-2
+  profile: task-app
+  deploymentBucket:
+    name: troystaskbucket
+    blockPublicAccess: false
+
+resources:
+  Resources:
+    StaticWebsiteConfig:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: /${self:service}/${self:provider.stage}/websiteBucket
+        Type: String
+        Value: troystaskbucket
+        Description: S3 bucket that hosts the frontend

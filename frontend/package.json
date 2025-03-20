@@ -6,8 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:prod": "tsc -b && vite build --mode production",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:prod": "vite preview --mode production",
+    "deploy:infra": "serverless deploy --stage dev",
+    "deploy:files": "aws s3 sync dist s3://troystaskbucket --delete --profile task-app",
+    "deploy": "npm run build && npm run deploy:infra && npm run deploy:files",
+    "deploy:prod": "npm run build && serverless deploy --stage prod && aws s3 sync dist s3://troystaskbucket --delete --profile task-app"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -28,6 +34,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "serverless": "^3.38.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"

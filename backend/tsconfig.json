@@ -17,11 +17,6 @@
       "@shared/*": ["../shared/*"]
     }
   },
-  "include": [
-    "src/controllers/**/*",
-    "src/routes/**/*",
-    "src/server.ts",
-    "../shared/**/*"
-  ],
+  "include": ["src/**/*", "../shared/**/*"],
   "exclude": ["node_modules", "dist"]
 }

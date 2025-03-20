@@ -58,7 +58,7 @@ export function TaskItem({ task, onUpdate, onDelete, onEdit }: TaskItemProps) {
           )}
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-          <div className="w-full sm:w-40">
+          <div className="w-full sm:w-40" onClick={(e) => e.stopPropagation()}>
             <Dropdown
               value={task.status}
               onChange={handleStatusChange}
